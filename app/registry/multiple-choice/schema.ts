@@ -2,6 +2,10 @@ import { z } from "zod";
 
 export const schema = z.object({
     title: z.string().describe("Quiz Title").default("My Quiz"),
+    settings: z.object({
+        passingScore: z.number().min(0).max(100).describe("Passing Score (%)").default(80),
+        showIncorrectAnswers: z.boolean().describe("Show Incorrect Answers").default(true),
+    }).describe("Settings"),
     questions: z.array(
         z.object({
             text: z.string().describe("Question text"),
@@ -15,10 +19,6 @@ export const schema = z.object({
                 .describe("Answers"),
         })
     ).describe("Questions"),
-    settings: z.object({
-        passingScore: z.number().min(0).max(100).describe("Passing Score (%)").default(80),
-        showIncorrectAnswers: z.boolean().describe("Show Incorrect Answers").default(true),
-    }).describe("Settings"),
 });
 
 export type MultipleChoiceContent = z.infer<typeof schema>;

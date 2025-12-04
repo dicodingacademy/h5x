@@ -1,18 +1,40 @@
-# Welcome to React Router!
+# H5X - Interactive Content Builder
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A modern, production-ready platform for building interactive educational content, built with React Router v7, Drizzle ORM, and SQLite.
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
 
-## Features
+## Features & Screenshots
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+### Project Management
+- **Create Project**: Easily create new interactive content projects.
+  ![Create Project Screen](https://placehold.co/800x500?text=Create+Project+Screen)
+
+### Content Types
+
+#### 1. Multiple Choice
+- Create engaging multiple-choice questions with feedback.
+  ![Multiple Choice Preview](https://placehold.co/800x500?text=Multiple+Choice+Preview)
+
+#### 2. True / False
+- Simple true or false questions for quick checks.
+  ![True False Preview](https://placehold.co/800x500?text=True+False+Preview)
+
+#### 3. Interactive Video
+- Add timed interactions (Facts, Quizzes) to HLS videos using Vidstack.
+  ![Interactive Video Preview](https://placehold.co/800x500?text=Interactive+Video+Preview)
+
+#### 4. Flash Card
+- Flip cards for memorization and learning with 3D animations.
+  ![Flash Card Preview](https://placehold.co/800x500?text=Flash+Card+Preview)
+
+#### 5. Fill the Blank
+- Drag and drop words to complete sentences using `@dnd-kit`.
+  ![Fill the Blank Preview](https://placehold.co/800x500?text=Fill+the+Blank+Preview)
+
+#### 6. Image Hotspot
+- Interactive images with clickable hotspots that reveal popover information.
+  ![Image Hotspot Preview](https://placehold.co/800x500?text=Image+Hotspot+Preview)
 
 ## Getting Started
 
@@ -49,39 +71,21 @@ npm run build
 To build and run using Docker:
 
 ```bash
-docker build -t my-app .
+docker build -t h5x-app .
 
 # Run the container
-docker run -p 3000:3000 my-app
+docker run -p 3000:3000 h5x-app
 ```
 
-The containerized application can be deployed to any platform that supports Docker, including:
+## Tech Stack
 
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+- **Framework**: React Router v7
+- **Database**: SQLite with Drizzle ORM
+- **Styling**: TailwindCSS & Shadcn UI
+- **Video**: Vidstack
+- **Drag & Drop**: @dnd-kit
+- **Icons**: Lucide React
 
 ---
 
-Built with ❤️ using React Router.
+Built with ❤️ using React Router & Antigravity.

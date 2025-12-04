@@ -50,9 +50,9 @@ function FieldRenderer({
     let underlyingSchema = schema;
     while (underlyingSchema instanceof z.ZodDefault || underlyingSchema instanceof z.ZodOptional) {
         if (underlyingSchema instanceof z.ZodDefault) {
-            underlyingSchema = underlyingSchema._def.innerType;
+            underlyingSchema = underlyingSchema._def.innerType as z.ZodTypeAny;
         } else if (underlyingSchema instanceof z.ZodOptional) {
-            underlyingSchema = underlyingSchema.unwrap();
+            underlyingSchema = underlyingSchema.unwrap() as z.ZodTypeAny;
         }
     }
 

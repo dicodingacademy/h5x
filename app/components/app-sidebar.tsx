@@ -14,7 +14,7 @@ import {
     SidebarGroupContent,
 } from "~/components/ui/sidebar"
 
-import { Plus, FileText, Layout } from "lucide-react"
+import { Plus, FileText, Layout, Video, ListTodo, CheckSquare, BookOpen, PenTool } from "lucide-react"
 import { Link, useSearchParams, useLocation } from "react-router"
 
 interface Project {
@@ -25,6 +25,23 @@ interface Project {
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     projects: Project[];
+}
+
+function getProjectIcon(type: string | null) {
+    switch (type) {
+        case "interactive-video":
+            return <Video />;
+        case "multiple-choice":
+            return <ListTodo />;
+        case "true-false":
+            return <CheckSquare />;
+        case "flash-card":
+            return <BookOpen />;
+        case "fill-blank":
+            return <PenTool />;
+        default:
+            return <FileText />;
+    }
 }
 
 export function AppSidebar({ projects, ...props }: AppSidebarProps) {
@@ -82,7 +99,7 @@ export function AppSidebar({ projects, ...props }: AppSidebarProps) {
                                             tooltip={project.title}
                                         >
                                             <Link to={`/?projectId=${project.id}`}>
-                                                <FileText />
+                                                {getProjectIcon(project.type)}
                                                 <span>{project.title}</span>
                                             </Link>
                                         </SidebarMenuButton>

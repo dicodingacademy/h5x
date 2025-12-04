@@ -53,13 +53,49 @@ function FieldRenderer({
 }) {
     const { register, watch, setValue, formState: { errors } } = useFormContext();
 
-    // Unwrap ZodDefault / ZodOptional to get the underlying type
+    // Unwrap ZodDefault / ZodOptional / ZodUnion to get the underlying type
     let underlyingSchema = schema;
-    while (underlyingSchema instanceof z.ZodDefault || underlyingSchema instanceof z.ZodOptional) {
+    while (
+        underlyingSchema instanceof z.ZodDefault ||
+        underlyingSchema instanceof z.ZodOptional ||
+        underlyingSchema instanceof z.ZodUnion
+    ) {
         if (underlyingSchema instanceof z.ZodDefault) {
             underlyingSchema = underlyingSchema._def.innerType as z.ZodTypeAny;
         } else if (underlyingSchema instanceof z.ZodOptional) {
             underlyingSchema = underlyingSchema.unwrap() as z.ZodTypeAny;
+        } else if (underlyingSchema instanceof z.ZodUnion) {
+            // For unions, we try to find a supported type (String, Number, Boolean)
+            // We need to unwrap optionals/defaults inside the union options too
+            const options = underlyingSchema.options;
+            let foundType: z.ZodTypeAny | null = null;
+
+            for (const opt of options) {
+                let inner = opt;
+                while (inner instanceof z.ZodDefault || inner instanceof z.ZodOptional) {
+                    if (inner instanceof z.ZodDefault) {
+                        inner = inner._def.innerType;
+                    } else if (inner instanceof z.ZodOptional) {
+                        inner = inner.unwrap();
+                    }
+                }
+
+                if (
+                    inner instanceof z.ZodString ||
+                    inner instanceof z.ZodNumber ||
+                    inner instanceof z.ZodBoolean ||
+                    inner instanceof z.ZodEnum
+                ) {
+                    foundType = inner;
+                    break;
+                }
+            }
+
+            if (foundType) {
+                underlyingSchema = foundType;
+            } else {
+                break; // Cannot resolve union to a simple type
+            }
         }
     }
 

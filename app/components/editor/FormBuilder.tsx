@@ -123,7 +123,7 @@ function FieldRenderer({
             <div className="flex items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">
                     <Label htmlFor={path} className="capitalize">
-                        {name}
+                        {description}
                     </Label>
                     {description && (
                         <p className="text-sm text-muted-foreground">{description}</p>
@@ -146,11 +146,8 @@ function FieldRenderer({
     // Handle ZodObject (Recursive)
     if (underlyingSchema instanceof z.ZodObject) {
         return (
-            <Card className="shadow-none border-dashed">
-                <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-sm font-medium capitalize">{name}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
+            <Card className="shadow-none border-dashed m-0 p-0 space-y-0">
+                <CardContent className="p-4 pt-4">
                     <FormBuilder schema={underlyingSchema} path={path} />
                 </CardContent>
             </Card>
@@ -181,7 +178,7 @@ function ArrayField({
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between py-4">
                 <Label className="capitalize text-lg font-semibold">{name}</Label>
                 <Button
                     type="button"
@@ -229,7 +226,7 @@ function ArrayField({
 
                     return (
                         <Card key={field.id} className="relative group">
-                            <CardContent className="p-4 pt-8">
+                            <CardContent className="p-4">
                                 <Button
                                     type="button"
                                     variant="ghost"

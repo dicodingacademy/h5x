@@ -5,8 +5,15 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardContent } from "~/components/ui/card";
 import { Trash2, Plus } from "lucide-react";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "~/components/ui/select";
 
 interface FormBuilderProps {
     schema: z.ZodObject<any>;
@@ -44,7 +51,7 @@ function FieldRenderer({
     path: string;
     schema: z.ZodTypeAny;
 }) {
-    const { register, watch, setValue } = useFormContext();
+    const { register, watch, setValue, formState: { errors } } = useFormContext();
 
     // Unwrap ZodDefault / ZodOptional to get the underlying type
     let underlyingSchema = schema;
@@ -54,6 +61,21 @@ function FieldRenderer({
         } else if (underlyingSchema instanceof z.ZodOptional) {
             underlyingSchema = underlyingSchema.unwrap() as z.ZodTypeAny;
         }
+    }
+
+    // Conditional visibility for Interactive Video interactions
+    if (name === "factContent") {
+        const parentPath = path.split('.').slice(0, -1).join('.');
+        const typePath = `${parentPath}.type`;
+        const typeValue = watch(typePath);
+        if (typeValue !== "fact") return null;
+    }
+
+    if (name === "quizContent") {
+        const parentPath = path.split('.').slice(0, -1).join('.');
+        const typePath = `${parentPath}.type`;
+        const typeValue = watch(typePath);
+        if (typeValue !== "quiz") return null;
     }
 
     const description = (schema as any).description || (underlyingSchema as any).description;
@@ -99,8 +121,12 @@ function FieldRenderer({
 
         // Handle default value if undefined
         React.useEffect(() => {
-            if (value === undefined && (schema as any)._def.defaultValue) {
-                setValue(path, (schema as any)._def.defaultValue());
+            const def = (schema as any)._def;
+            if (value === undefined && def && def.defaultValue !== undefined) {
+                const defaultVal = typeof def.defaultValue === "function"
+                    ? def.defaultValue()
+                    : def.defaultValue;
+                setValue(path, defaultVal);
             }
         }, [value, path, schema, setValue]);
 
@@ -112,8 +138,8 @@ function FieldRenderer({
                     </Label>
                     <Switch
                         id={path}
-                        checked={!!value}
-                        onCheckedChange={(checked) => setValue(path, checked)}
+                        checked={value === true}
+                        onCheckedChange={(checked) => setValue(path, checked, { shouldValidate: true, shouldDirty: true })}
                     />
                 </div>
             );
@@ -131,8 +157,8 @@ function FieldRenderer({
                 </div>
                 <Switch
                     id={path}
-                    checked={!!value}
-                    onCheckedChange={(checked) => setValue(path, checked)}
+                    checked={value === true}
+                    onCheckedChange={(checked) => setValue(path, checked, { shouldValidate: true, shouldDirty: true })}
                 />
             </div>
         );
@@ -141,6 +167,36 @@ function FieldRenderer({
     // Handle ZodArray
     if (underlyingSchema instanceof z.ZodArray) {
         return <ArrayField name={name} path={path} schema={underlyingSchema} />;
+    }
+
+    // Handle ZodEnum
+    if (underlyingSchema instanceof z.ZodEnum) {
+        const value = watch(path);
+        return (
+            <div className="space-y-2 w-full">
+                <Label htmlFor={path} className="capitalize">
+                    {name}
+                </Label>
+                {description && (
+                    <p className="text-sm text-muted-foreground">{description}</p>
+                )}
+                <Select
+                    onValueChange={(val) => setValue(path, val)}
+                    value={value}
+                >
+                    <SelectTrigger id={path}>
+                        <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {underlyingSchema.options.map((option: any) => (
+                            <SelectItem key={option} value={option}>
+                                {option}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            </div>
+        );
     }
 
     // Handle ZodObject (Recursive)
@@ -166,14 +222,20 @@ function ArrayField({
     path: string;
     schema: z.ZodArray<any>;
 }) {
-    const { control } = useFormContext();
+    const { control, register } = useFormContext();
     const { fields, append, remove } = useFieldArray({
         control,
         name: path,
     });
+    const { formState: { errors } } = useFormContext();
 
+    // Helper to get nested error
+    const getError = (obj: any, path: string) => {
+        return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+    };
+
+    const error = getError(errors, path);
     const itemSchema = schema.element;
-
     const isAnswers = name === "answers";
 
     return (
@@ -191,35 +253,37 @@ function ArrayField({
                 </Button>
             </div>
 
-            <div className={isAnswers ? "space-y-2" : "space-y-3"}>
+            <div className={isAnswers ? "space-y-4" : "space-y-3"}>
                 {fields.map((field, index) => {
-                    if (isAnswers) {
+                    if (isAnswers && itemSchema instanceof z.ZodObject) {
                         return (
-                            <div key={field.id} className="group flex items-center gap-2">
-                                <div className="flex-1">
-                                    {itemSchema instanceof z.ZodObject ? (
-                                        <FormBuilder
-                                            schema={itemSchema}
-                                            path={`${path}.${index}`}
-                                            className="flex items-center gap-4 w-full"
-                                        />
-                                    ) : (
+                            <div key={field.id} className="space-y-2 border p-4 rounded-lg bg-card/50">
+                                <div className="flex items-center justify-between">
+                                    <Label className="font-medium">Text</Label>
+                                    <div className="flex items-center gap-4">
                                         <FieldRenderer
-                                            name={`Item ${index + 1}`}
-                                            path={`${path}.${index}`}
-                                            schema={itemSchema}
+                                            name="correct"
+                                            path={`${path}.${index}.correct`}
+                                            schema={(itemSchema as z.ZodObject<any>).shape.correct}
                                         />
-                                    )}
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-destructive hover:text-destructive/90 h-8 w-8"
+                                            onClick={() => remove(index)}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
                                 </div>
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="text-destructive hover:text-destructive/90 h-8 w-8"
-                                    onClick={() => remove(index)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <Input
+                                    {...register(`${path}.${index}.text`)}
+                                    placeholder="Answer text"
+                                />
+                                {getError(errors, `${path}.${index}.text`)?.message && (
+                                    <p className="text-sm text-destructive">{getError(errors, `${path}.${index}.text`)?.message}</p>
+                                )}
                             </div>
                         );
                     }
@@ -254,6 +318,10 @@ function ArrayField({
                     );
                 })}
             </div>
+
+            {error && error.message && (
+                <p className="text-sm font-medium text-destructive">{error.message}</p>
+            )}
         </div>
     );
 }

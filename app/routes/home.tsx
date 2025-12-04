@@ -1,5 +1,5 @@
-import { Form, useNavigation, useSubmit, useLoaderData, redirect } from "react-router";
-import { z } from "zod";
+import { useState } from "react";
+import { Form, useNavigation, useSubmit, redirect } from "react-router";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { db } from "~/db";
@@ -14,7 +14,7 @@ import { schema as multipleChoiceSchema } from "~/registry/multiple-choice/schem
 import { MultipleChoicePlayer } from "~/components/player/MultipleChoicePlayer";
 import { schema as trueFalseSchema } from "~/registry/true-false/schema";
 import { TrueFalsePlayer } from "~/components/player/TrueFalsePlayer";
-import { Loader2, Plus, Save, ArrowLeft } from "lucide-react";
+import { Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "~/components/ui/sidebar";
 import { AppSidebar } from "~/components/app-sidebar";
 import { Separator } from "~/components/ui/separator";
@@ -26,6 +26,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../components/ui/breadcrumb"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import type { Route } from "./+types/home";
 
 // --- Server Actions & Loaders ---
@@ -83,6 +93,12 @@ export async function action({ request }: Route.ActionArgs) {
       .set({ content: JSON.parse(content) })
       .where(eq(contents.id, parseInt(projectId)));
     return { success: true, saved: true };
+  }
+
+  if (intent === "delete_project") {
+    const projectId = formData.get("projectId") as string;
+    await db.delete(contents).where(eq(contents.id, parseInt(projectId)));
+    throw redirect("/");
   }
 
   return null;
@@ -156,75 +172,117 @@ function EmptyState() {
 
 function ProjectWorkspace({ project }: { project: any }) {
   const submit = useSubmit();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  // 1. Select Type View
-  if (!project.type) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <header className="absolute top-0 left-0 right-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#">Project</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator className="hidden md:block" />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{project.title}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </header>
-        <Card className="w-full max-w-2xl mt-16">
-          <CardHeader>
-            <CardTitle>Select Content Type</CardTitle>
-            <CardDescription>Choose the type of interaction for "{project.title}"</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button
-              variant="outline"
-              className="h-32 flex flex-col gap-2 hover:border-primary hover:bg-primary/5"
-              onClick={() => {
-                const formData = new FormData();
-                formData.append("intent", "select_type");
-                formData.append("projectId", project.id.toString());
-                formData.append("type", "multiple-choice");
-                submit(formData, { method: "post" });
-              }}
-            >
-              <span className="text-lg font-semibold">Multiple Choice</span>
-              <span className="text-sm text-muted-foreground">Standard quiz format</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-32 flex flex-col gap-2 hover:border-primary hover:bg-primary/5"
-              onClick={() => {
-                const formData = new FormData();
-                formData.append("intent", "select_type");
-                formData.append("projectId", project.id.toString());
-                formData.append("type", "true-false");
-                submit(formData, { method: "post" });
-              }}
-            >
-              <span className="text-lg font-semibold">True / False</span>
-              <span className="text-sm text-muted-foreground">Simple binary choice</span>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const confirmDelete = () => {
+    const formData = new FormData();
+    formData.append("intent", "delete_project");
+    formData.append("projectId", project.id.toString());
+    submit(formData, { method: "post" });
+    setIsDeleteDialogOpen(false);
+  };
 
-  // 2. Editor View
-  return <Editor project={project} />;
+  return (
+    <>
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the project
+              <span className="font-semibold text-foreground"> "{project.title}" </span>
+              and remove all its data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground text-white hover:bg-destructive/90"
+            >
+              Delete Project
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {!project.type ? (
+        <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+          <header className="absolute top-0 left-0 right-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-background">
+            <SidebarTrigger className="-ml-1" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem className="hidden md:block">
+                  <BreadcrumbLink href="#">Project</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden md:block" />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{project.title}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+            <div className="ml-auto">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsDeleteDialogOpen(true)}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            </div>
+          </header>
+          <Card className="w-full max-w-2xl mt-16">
+            <CardHeader>
+              <CardTitle>Select Content Type</CardTitle>
+              <CardDescription>Choose the type of interaction for "{project.title}"</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                className="h-32 flex flex-col gap-2 hover:border-primary hover:bg-primary/5"
+                onClick={() => {
+                  const formData = new FormData();
+                  formData.append("intent", "select_type");
+                  formData.append("projectId", project.id.toString());
+                  formData.append("type", "multiple-choice");
+                  submit(formData, { method: "post" });
+                }}
+              >
+                <span className="text-lg font-semibold">Multiple Choice</span>
+                <span className="text-sm text-muted-foreground">Standard quiz format</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-32 flex flex-col gap-2 hover:border-primary hover:bg-primary/5"
+                onClick={() => {
+                  const formData = new FormData();
+                  formData.append("intent", "select_type");
+                  formData.append("projectId", project.id.toString());
+                  formData.append("type", "true-false");
+                  submit(formData, { method: "post" });
+                }}
+              >
+                <span className="text-lg font-semibold">True / False</span>
+                <span className="text-sm text-muted-foreground">Simple binary choice</span>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <Editor project={project} onDelete={() => setIsDeleteDialogOpen(true)} />
+      )}
+    </>
+  );
 }
 
 // --- Editor Component ---
 
-function Editor({ project }: { project: any }) {
+function Editor({ project, onDelete }: { project: any, onDelete: () => void }) {
   const submit = useSubmit();
   const navigation = useNavigation();
+  const [showPreview, setShowPreview] = useState(false);
 
   // Determine schema and defaults based on type
   const schema = project.type === "true-false" ? trueFalseSchema : multipleChoiceSchema;
@@ -278,7 +336,7 @@ function Editor({ project }: { project: any }) {
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Header */}
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+      <header className="sticky top-0 z-10 bg-background flex h-16 shrink-0 items-center gap-2 border-b px-4 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
         <div className="flex items-center gap-2 px-4">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
@@ -299,6 +357,17 @@ function Editor({ project }: { project: any }) {
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowPreview(!showPreview)}
+            className="mr-2"
+          >
+            {showPreview ? "Hide Preview" : "Show Preview"}
+          </Button>
+          <Button variant="ghost" size="icon" onClick={onDelete} className="text-destructive hover:text-destructive hover:bg-destructive/10 mr-2">
+            <Trash2 className="h-5 w-5" />
+          </Button>
+          <Button
             onClick={methods.handleSubmit(handleSave)}
             disabled={navigation.state === "submitting"}
           >
@@ -317,7 +386,7 @@ function Editor({ project }: { project: any }) {
         <FormProvider {...methods} key={projectId}>
           <ResizablePanelGroup direction="horizontal">
             {/* Left: Form Editor */}
-            <ResizablePanel defaultSize={40} minSize={30}>
+            <ResizablePanel defaultSize={showPreview ? 40 : 100} minSize={30}>
               <div className="h-full overflow-y-auto p-4 bg-gray-50/50 dark:bg-gray-900/50">
                 <div className="max-w-xl mx-auto space-y-4">
                   <div className="flex items-center justify-between">
@@ -330,28 +399,32 @@ function Editor({ project }: { project: any }) {
               </div>
             </ResizablePanel>
 
-            <ResizableHandle />
+            {showPreview && (
+              <>
+                <ResizableHandle />
 
-            {/* Right: Preview */}
-            <ResizablePanel defaultSize={60}>
-              <div className="h-full bg-gray-100 dark:bg-gray-950 p-4 flex flex-col">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                    Live Preview
-                  </h2>
-                </div>
-                <div className="flex-1 flex items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-gray-900 overflow-y-auto">
-                  <div className="w-full max-w-3xl p-4">
-                    {project.type === "multiple-choice" && (
-                      <MultipleChoicePlayer data={formData} />
-                    )}
-                    {project.type === "true-false" && (
-                      <TrueFalsePlayer data={formData} />
-                    )}
+                {/* Right: Preview */}
+                <ResizablePanel defaultSize={60}>
+                  <div className="h-full bg-gray-100 dark:bg-gray-950 p-4 flex flex-col">
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                        Live Preview
+                      </h2>
+                    </div>
+                    <div className="flex-1 flex items-center justify-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl bg-white dark:bg-gray-900 overflow-y-auto">
+                      <div className="w-full max-w-3xl p-4">
+                        {project.type === "multiple-choice" && (
+                          <MultipleChoicePlayer data={formData} />
+                        )}
+                        {project.type === "true-false" && (
+                          <TrueFalsePlayer data={formData} />
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </ResizablePanel>
+                </ResizablePanel>
+              </>
+            )}
           </ResizablePanelGroup>
         </FormProvider>
       </div>

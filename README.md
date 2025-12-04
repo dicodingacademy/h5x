@@ -14,27 +14,27 @@ A modern, production-ready platform for building interactive educational content
 
 #### 1. Multiple Choice
 - Create engaging multiple-choice questions with feedback.
-  ![Multiple Choice Preview](https://placehold.co/800x500?text=Multiple+Choice+Preview)
+  ![Multiple Choice Preview](https://github.com/dicodingacademy/h5x/blob/0a9798afaad679ef73b19e27a52c7345d5e0c8f4/preview/multiple-choices.gif)
 
 #### 2. True / False
 - Simple true or false questions for quick checks.
-  ![True False Preview](https://placehold.co/800x500?text=True+False+Preview)
+  ![True False Preview](https://github.com/dicodingacademy/h5x/blob/0a9798afaad679ef73b19e27a52c7345d5e0c8f4/preview/true-false.gif)
 
 #### 3. Interactive Video
 - Add timed interactions (Facts, Quizzes) to HLS videos using Vidstack.
-  ![Interactive Video Preview](https://placehold.co/800x500?text=Interactive+Video+Preview)
+  ![Interactive Video Preview](https://github.com/dicodingacademy/h5x/blob/0a9798afaad679ef73b19e27a52c7345d5e0c8f4/preview/video-interactive.gif)
 
 #### 4. Flash Card
 - Flip cards for memorization and learning with 3D animations.
-  ![Flash Card Preview](https://placehold.co/800x500?text=Flash+Card+Preview)
+  ![Flash Card Preview](https://github.com/dicodingacademy/h5x/blob/0a9798afaad679ef73b19e27a52c7345d5e0c8f4/preview/flash-card.gif)
 
 #### 5. Fill the Blank
 - Drag and drop words to complete sentences using `@dnd-kit`.
-  ![Fill the Blank Preview](https://placehold.co/800x500?text=Fill+the+Blank+Preview)
+  ![Fill the Blank Preview](https://github.com/dicodingacademy/h5x/blob/0a9798afaad679ef73b19e27a52c7345d5e0c8f4/preview/fill-the-blank.gif)
 
 #### 6. Image Hotspot
 - Interactive images with clickable hotspots that reveal popover information.
-  ![Image Hotspot Preview](https://placehold.co/800x500?text=Image+Hotspot+Preview)
+  ![Image Hotspot Preview](https://github.com/dicodingacademy/h5x/blob/0a9798afaad679ef73b19e27a52c7345d5e0c8f4/preview/image-spot.gif)
 
 ## Getting Started
 

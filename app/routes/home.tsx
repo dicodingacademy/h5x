@@ -22,7 +22,10 @@ import { schema as flashCardSchema } from "~/registry/flash-card/schema";
 import { FlashCardPlayer } from "~/components/player/FlashCardPlayer";
 import { schema as fillBlankSchema } from "~/registry/fill-blank/schema";
 import { FillBlankPlayer } from "~/components/player/FillBlankPlayer";
-import { Loader2, Plus, Save, Trash2, BookOpen, PenTool } from "lucide-react";
+import { schema as imageHotspotSchema } from "~/registry/image-hotspot/schema";
+import { ImageHotspotPlayer } from "~/components/player/ImageHotspotPlayer";
+import { Loader2, Plus, Save, Trash2, BookOpen, PenTool, MousePointer2 } from "lucide-react";
+
 
 
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "~/components/ui/sidebar";
@@ -316,6 +319,22 @@ function ProjectWorkspace({ project }: { project: any }) {
                 <span className="text-lg font-semibold">Fill the Blank</span>
                 <span className="text-sm text-muted-foreground">Drag & drop words</span>
               </Button>
+              <Button
+                variant="outline"
+                className="h-32 flex flex-col gap-2 hover:border-primary hover:bg-primary/5"
+                onClick={() => {
+                  const formData = new FormData();
+                  formData.append("intent", "select_type");
+                  formData.append("projectId", project.id.toString());
+                  formData.append("type", "image-hotspot");
+                  submit(formData, { method: "post" });
+                }}
+              >
+                <MousePointer2 className="h-8 w-8 text-primary" />
+                <span className="text-lg font-semibold">Image Hotspot</span>
+                <span className="text-sm text-muted-foreground">Interactive image points</span>
+              </Button>
+
             </CardContent>
           </Card>
         </div>
@@ -413,6 +432,26 @@ function Editor({ project, onDelete }: { project: any, onDelete: () => void }) {
         defaultValues: project.content || {
           text: "The *sky* is blue and the *grass* is green.",
           distractors: [{ text: "red" }, { text: "yellow" }],
+        },
+      };
+    } else if (project.type === "image-hotspot") {
+      return {
+        schema: imageHotspotSchema,
+        defaultValues: project.content || {
+          image: "",
+          hotspots: [
+            { x: 50, y: 50, title: "Center Point", description: "This is the center of the image." }
+          ],
+        },
+      };
+    } else if (project.type === "image-hotspot") {
+      return {
+        schema: imageHotspotSchema,
+        defaultValues: project.content || {
+          image: "",
+          hotspots: [
+            { x: 50, y: 50, title: "Center Point", description: "This is the center of the image." }
+          ],
         },
       };
     } else {
@@ -555,6 +594,9 @@ function Editor({ project, onDelete }: { project: any, onDelete: () => void }) {
                             )}
                             {project.type === "fill-blank" && (
                               <FillBlankPlayer data={formData} />
+                            )}
+                            {project.type === "image-hotspot" && (
+                              <ImageHotspotPlayer data={formData} />
                             )}
                           </div>
                         </div>

@@ -99,33 +99,61 @@ export function MultipleChoicePlayer({
                             const isCorrect = userAnswerIdx !== undefined && q.answers[userAnswerIdx]?.correct;
 
                             return (
-                                <Card key={qIdx} className={`border-l-4 ${isCorrect ? "border-l-green-500" : "border-l-red-500"}`}>
-                                    <CardHeader className="pb-2">
-                                        <div className="flex items-start justify-between">
-                                            <CardTitle className="text-base">{qIdx + 1}. {q.text}</CardTitle>
+                                <Card key={qIdx} className={`overflow-hidden transition-all ${isCorrect ? "border-green-200 bg-green-50/50 dark:bg-green-900/10 dark:border-green-900" : "border-red-200 bg-red-50/50 dark:bg-red-900/10 dark:border-red-900"}`}>
+                                    <CardHeader className="pb-3 border-b bg-white/50 dark:bg-black/50">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="space-y-1">
+                                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Question {qIdx + 1}</span>
+                                                <CardTitle className="text-base font-medium leading-relaxed">{q.text}</CardTitle>
+                                            </div>
                                             {isCorrect ? (
-                                                <CheckCircle2 className="text-green-500 h-5 w-5 shrink-0" />
+                                                <div className="flex items-center gap-1.5 text-green-600 bg-green-100 dark:bg-green-900/30 px-2.5 py-1 rounded-full text-xs font-medium shrink-0">
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                    <span>Correct</span>
+                                                </div>
                                             ) : (
-                                                <XCircle className="text-red-500 h-5 w-5 shrink-0" />
+                                                <div className="flex items-center gap-1.5 text-red-600 bg-red-100 dark:bg-red-900/30 px-2.5 py-1 rounded-full text-xs font-medium shrink-0">
+                                                    <XCircle className="h-4 w-4" />
+                                                    <span>Incorrect</span>
+                                                </div>
                                             )}
                                         </div>
                                     </CardHeader>
-                                    <CardContent>
-                                        <div className="text-sm space-y-1">
+                                    <CardContent className="pt-4">
+                                        <div className="space-y-2">
                                             {q.answers.map((ans, aIdx) => {
                                                 const isSelected = userAnswerIdx === aIdx;
                                                 const isAnswerCorrect = ans.correct;
 
-                                                let style = "text-muted-foreground";
-                                                if (isSelected && isAnswerCorrect) style = "text-green-600 font-medium";
-                                                else if (isSelected && !isAnswerCorrect) style = "text-red-600 font-medium";
-                                                else if (isAnswerCorrect) style = "text-green-600 font-medium";
+                                                let containerStyle = "border-transparent bg-transparent text-muted-foreground";
+                                                let icon = null;
+
+                                                if (isSelected && isAnswerCorrect) {
+                                                    containerStyle = "border-green-200 bg-green-100/50 text-green-700 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800";
+                                                    icon = <CheckCircle2 className="h-4 w-4 text-green-600" />;
+                                                } else if (isSelected && !isAnswerCorrect) {
+                                                    containerStyle = "border-red-200 bg-red-100/50 text-red-700 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800";
+                                                    icon = <XCircle className="h-4 w-4 text-red-600" />;
+                                                } else if (isAnswerCorrect) {
+                                                    containerStyle = "border-green-200 bg-green-50/50 text-green-700 dark:bg-green-900/10 dark:text-green-400 dark:border-green-800 border-dashed";
+                                                    icon = <CheckCircle2 className="h-4 w-4 text-green-600 opacity-50" />;
+                                                }
 
                                                 return (
-                                                    <div key={aIdx} className={`flex items-center gap-2 ${style}`}>
-                                                        {isSelected && (isAnswerCorrect ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />)}
-                                                        {!isSelected && isAnswerCorrect && <CheckCircle2 className="h-3 w-3 opacity-50" />}
-                                                        <span>{ans.text}</span>
+                                                    <div
+                                                        key={aIdx}
+                                                        className={`flex items-center gap-3 p-3 rounded-md border text-sm transition-colors ${containerStyle}`}
+                                                    >
+                                                        <div className="shrink-0">
+                                                            {icon || <div className="w-4 h-4 rounded-full border border-muted-foreground/30" />}
+                                                        </div>
+                                                        <span className="flex-1">{ans.text}</span>
+                                                        {isAnswerCorrect && !isSelected && (
+                                                            <span className="text-xs font-medium text-green-600 uppercase tracking-wider px-2">Correct Answer</span>
+                                                        )}
+                                                        {isSelected && (
+                                                            <span className="text-xs font-medium uppercase tracking-wider px-2 opacity-70">Your Answer</span>
+                                                        )}
                                                     </div>
                                                 );
                                             })}

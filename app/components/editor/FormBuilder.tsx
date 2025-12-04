@@ -14,6 +14,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "~/components/ui/select";
+import { HotspotEditor } from "./HotspotEditor";
 
 interface FormBuilderProps {
     schema: z.ZodObject<any>;
@@ -118,6 +119,49 @@ function FieldRenderer({
 
     // Handle ZodString
     if (underlyingSchema instanceof z.ZodString) {
+        const isImage = description?.toLowerCase().includes("image");
+
+        if (isImage) {
+            return (
+                <div className="space-y-2 w-full">
+                    <Label htmlFor={path} className="capitalize">
+                        {name}
+                    </Label>
+                    {description && (
+                        <p className="text-sm text-muted-foreground">{description}</p>
+                    )}
+                    <div className="flex gap-2">
+                        <Input
+                            id={path}
+                            {...register(path)}
+                            placeholder="https://example.com/image.jpg"
+                        />
+                        <div className="relative">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            setValue(path, reader.result as string, { shouldValidate: true, shouldDirty: true });
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                }}
+                            />
+                            <Button type="button" variant="outline" size="icon">
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+
+                </div>
+            );
+        }
+
         return (
             <div className="space-y-2 w-full">
                 <Label htmlFor={path} className="capitalize">
@@ -200,8 +244,13 @@ function FieldRenderer({
         );
     }
 
+
+
     // Handle ZodArray
     if (underlyingSchema instanceof z.ZodArray) {
+        if (name === "hotspots") {
+            return <HotspotEditor path={path} />;
+        }
         return <ArrayField name={name} path={path} schema={underlyingSchema} />;
     }
 

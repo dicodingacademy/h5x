@@ -14,7 +14,7 @@ import {
     SidebarGroupContent,
 } from "~/components/ui/sidebar"
 
-import { Plus, FileText, Layout, Video, ListTodo, CheckSquare, BookOpen, PenTool } from "lucide-react"
+import { Plus, FileText, Layout, Video, ListTodo, CheckSquare, BookOpen, PenTool, MousePointer2 } from "lucide-react"
 import { Link, useSearchParams, useLocation } from "react-router"
 
 interface Project {
@@ -39,6 +39,8 @@ function getProjectIcon(type: string | null) {
             return <BookOpen />;
         case "fill-blank":
             return <PenTool />;
+        case "image-hotspot":
+            return <MousePointer2 />;
         default:
             return <FileText />;
     }

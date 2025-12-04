@@ -150,7 +150,7 @@ export function FillBlankPlayer({ data }: { data: FillBlankContent }) {
                             if (part.type === "text") {
                                 return <span key={index}>{part.content}</span>;
                             } else {
-                                const isCorrect = droppedItems[part.id]?.text === part.answer;
+                                const isCorrect = droppedItems[part.id!]?.text === part.answer;
                                 return (
                                     <Droppable
                                         key={part.id}

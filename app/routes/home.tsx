@@ -18,7 +18,13 @@ import { schema as trueFalseSchema } from "~/registry/true-false/schema";
 import { TrueFalsePlayer } from "~/components/player/TrueFalsePlayer";
 import { schema as interactiveVideoSchema } from "~/registry/interactive-video/schema";
 import { InteractiveVideoPlayer } from "~/components/player/InteractiveVideoPlayer";
-import { Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { schema as flashCardSchema } from "~/registry/flash-card/schema";
+import { FlashCardPlayer } from "~/components/player/FlashCardPlayer";
+import { schema as fillBlankSchema } from "~/registry/fill-blank/schema";
+import { FillBlankPlayer } from "~/components/player/FillBlankPlayer";
+import { Loader2, Plus, Save, Trash2, BookOpen, PenTool } from "lucide-react";
+
+
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "~/components/ui/sidebar";
 import { AppSidebar } from "~/components/app-sidebar";
 import { Separator } from "~/components/ui/separator";
@@ -280,6 +286,36 @@ function ProjectWorkspace({ project }: { project: any }) {
                 <span className="text-lg font-semibold">Interactive Video</span>
                 <span className="text-sm text-muted-foreground">Video with timed events</span>
               </Button>
+              <Button
+                variant="outline"
+                className="h-32 flex flex-col gap-2 hover:border-primary hover:bg-primary/5"
+                onClick={() => {
+                  const formData = new FormData();
+                  formData.append("intent", "select_type");
+                  formData.append("projectId", project.id.toString());
+                  formData.append("type", "flash-card");
+                  submit(formData, { method: "post" });
+                }}
+              >
+                <BookOpen className="h-8 w-8 text-primary" />
+                <span className="text-lg font-semibold">Flash Card</span>
+                <span className="text-sm text-muted-foreground">Flip card for learning</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-32 flex flex-col gap-2 hover:border-primary hover:bg-primary/5"
+                onClick={() => {
+                  const formData = new FormData();
+                  formData.append("intent", "select_type");
+                  formData.append("projectId", project.id.toString());
+                  formData.append("type", "fill-blank");
+                  submit(formData, { method: "post" });
+                }}
+              >
+                <PenTool className="h-8 w-8 text-primary" />
+                <span className="text-lg font-semibold">Fill the Blank</span>
+                <span className="text-sm text-muted-foreground">Drag & drop words</span>
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -310,7 +346,7 @@ function ProjectWorkspace({ project }: { project: any }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      <Editor project={project} onDelete={() => setIsDeleteDialogOpen(true)} />
+      <Editor key={project.id} project={project} onDelete={() => setIsDeleteDialogOpen(true)} />
     </>
   );
 }
@@ -361,6 +397,22 @@ function Editor({ project, onDelete }: { project: any, onDelete: () => void }) {
               }
             }
           ]
+        },
+      };
+    } else if (project.type === "flash-card") {
+      return {
+        schema: flashCardSchema,
+        defaultValues: project.content || {
+          question: "What is the capital of France?",
+          answer: "Paris",
+        },
+      };
+    } else if (project.type === "fill-blank") {
+      return {
+        schema: fillBlankSchema,
+        defaultValues: project.content || {
+          text: "The *sky* is blue and the *grass* is green.",
+          distractors: [{ text: "red" }, { text: "yellow" }],
         },
       };
     } else {
@@ -497,6 +549,12 @@ function Editor({ project, onDelete }: { project: any, onDelete: () => void }) {
                             )}
                             {project.type === "interactive-video" && (
                               <InteractiveVideoPlayer data={formData} />
+                            )}
+                            {project.type === "flash-card" && (
+                              <FlashCardPlayer data={formData} />
+                            )}
+                            {project.type === "fill-blank" && (
+                              <FillBlankPlayer data={formData} />
                             )}
                           </div>
                         </div>
